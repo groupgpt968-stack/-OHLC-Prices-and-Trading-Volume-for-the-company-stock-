@@ -1,0 +1,58 @@
+# Read FactSet Excel file
+data_raw <- read_excel(
+  "~/Documents/R asm 2 financial data scen/PriceHistory-11.xlsx",
+  skip = 2
+)
+
+# Check column names
+colnames(data_raw)
+
+# Select the correct columns
+# In this FactSet file:
+# Date = Date
+# Close = Price
+# Open = Open
+# High = High
+# Low = Low
+# Volume = CVol
+data <- data_raw[, c("Date", "Price", "Open", "High", "Low", "CVol")]
+
+# Rename columns for later use
+colnames(data) <- c("Date", "Close", "Open", "High", "Low", "Volume")
+
+# Convert Date safely
+if (is.numeric(data$Date)) {
+  data$Date <- as.Date(data$Date, origin = "1899-12-30")
+} else {
+  data$Date <- as.Date(data$Date)
+}
+
+# Convert price and volume columns to numeric
+data$Open   <- as.numeric(data$Open)
+data$High   <- as.numeric(data$High)
+data$Low    <- as.numeric(data$Low)
+data$Close  <- as.numeric(data$Close)
+data$Volume <- as.numeric(data$Volume)
+
+# Remove rows with missing Date or Close
+data <- data[!is.na(data$Date) & !is.na(data$Close), ]
+
+# Sort by date
+data <- data[order(data$Date), ]
+
+# Filter to assignment period
+data <- data[
+  data$Date >= as.Date("2022-07-01") &
+    data$Date <= as.Date("2026-03-27"),
+]
+
+# Print dataset information
+cat(
+  "Dataset loaded:",
+  nrow(data),
+  "observations from",
+  format(min(data$Date)),
+  "to",
+  format(max(data$Date)),
+  "\n"
+)
